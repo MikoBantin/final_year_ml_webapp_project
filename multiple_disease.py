@@ -17,17 +17,17 @@ working_dir = os.path.dirname(os.path.abspath(__file__))
 #parkinsons_model = pickle.load(open('C:/Users/modub/Desktop/multiple disese/savedmodel/parkinsons_svm_model_updatee.sav', 'rb'))
 
 # Loading the saved models
-with open('C:/Users/modub/Desktop/multiple disese/savedmodel/diabetes_svm_model_updatee.sav', 'rb') as file:
+with open('savedmodel/diabetes_svm_model_updatee.sav', 'rb') as file:
     diabetes_data = pickle.load(file)
     diabetes_model = diabetes_data['model']  # Extract the model from the dictionary
     diabetes_scaler = diabetes_data['scaler']  # Extract the scaler if needed
 
-with open('C:/Users/modub/Desktop/multiple disese/savedmodel/heart_disease_svm_model_updatee.sav', 'rb') as file:
+with open('savedmodel/heart_disease_svm_model_updatee.sav', 'rb') as file:
     heart_data = pickle.load(file)
     heart_disease_model = heart_data['model']  # Extract the model from the dictionary
     heart_scaler = heart_data['scaler']  # Extract the scaler if needed
 
-with open('C:/Users/modub/Desktop/multiple disese/savedmodel/parkinsons_svm_model_updatee.sav', 'rb') as file:
+with open('savedmodel/parkinsons_svm_model_updatee.sav', 'rb') as file:
     parkinsons_data = pickle.load(file)
     parkinsons_model = parkinsons_data['model']  # Extract the model from the dictionary
     parkinsons_scaler = parkinsons_data['scaler']  # Extract the scaler if needed
