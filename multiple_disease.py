@@ -2,129 +2,52 @@ import os
 import pickle
 import streamlit as st
 from streamlit_option_menu import option_menu
-import sqlite3
-import bcrypt
 
-st.set_page_config(page_title="Health Assistant", layout="wide", page_icon="🧑‍⚕️")
+# Set page configuration
+st.set_page_config(page_title="Health Assistant",
+                   layout="wide",
+                   page_icon="🧑‍⚕️")
+
+# Getting the working directory of the main.py
+working_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Loading the saved models
+#diabetes_model = pickle.load(open('C:/Users/modub/Desktop/multiple disese/savedmodel/diabetes_svm_model_updatee.sav', 'rb'))
+#heart_disease_model = pickle.load(open('C:/Users/modub/Desktop/multiple disese/savedmodel/heart_disease_svm_model_updatee.sav', 'rb'))
+#parkinsons_model = pickle.load(open('C:/Users/modub/Desktop/multiple disese/savedmodel/parkinsons_svm_model_updatee.sav', 'rb'))
+
+# Loading the saved models
+with open('diabetes_svm_model_updatee.sav', 'rb') as file:
+    diabetes_data = pickle.load(file)
+    diabetes_model = diabetes_data['model']  # Extract the model from the dictionary
+    diabetes_scaler = diabetes_data['scaler']  # Extract the scaler if needed
+
+with open('heart_disease_svm_model_updatee.sav', 'rb') as file:
+    heart_data = pickle.load(file)
+    heart_disease_model = heart_data['model']  # Extract the model from the dictionary
+    heart_scaler = heart_data['scaler']  # Extract the scaler if needed
+
+with open('parkinsons_svm_model_updatee.sav', 'rb') as file:
+    parkinsons_data = pickle.load(file)
+    parkinsons_model = parkinsons_data['model']  # Extract the model from the dictionary
+    parkinsons_scaler = parkinsons_data['scaler']  # Extract the scaler if needed
+
+with open('breast_cancer_svm_model.sav', 'rb') as file:
+    breast_cancer_data = pickle.load(file)
+    breast_cancer_model = breast_cancer_data['model']
+    breast_cancer_scaler = breast_cancer_data['scaler']
 
 
-# ---------- DATABASE SETUP ----------
-def init_db():
-    conn = sqlite3.connect("users.db")
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-                    username TEXT PRIMARY KEY,
-                    password BLOB
-                )''')
-    conn.commit()
-    conn.close()
-
-# ---------- AUTH FUNCTIONS ----------
-def add_user(username, password):
-    conn = sqlite3.connect("users.db")
-    c = conn.cursor()
-    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-    try:
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
-        conn.commit()
-        return True
-    except sqlite3.IntegrityError:
-        return False
-    finally:
-        conn.close()
-
-def verify_user(username, password):
-    conn = sqlite3.connect("users.db")
-    c = conn.cursor()
-    c.execute("SELECT password FROM users WHERE username = ?", (username,))
-    result = c.fetchone()
-    conn.close()
-    if result:
-        return bcrypt.checkpw(password.encode(), result[0])
-    return False
-
-# ---------- LOGIN AND REGISTRATION ----------
-def login():
-    st.title("🔐 Login")
-    with st.form("login_form"):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        login_button = st.form_submit_button("Login")
-
-    if login_button:
-        if verify_user(username, password):
-            st.session_state["logged_in"] = True
-            st.session_state["username"] = username
-            st.success(f"Welcome {username}!")
-            st.experimental_rerun()
-        else:
-            st.error("Invalid username or password")
-
-    st.markdown("Don't have an account?")
-    if st.button("Go to Register"):
-        st.session_state["show_register"] = True
-
-def register():
-    st.title("📝 Register")
-    with st.form("register_form"):
-        new_user = st.text_input("Choose a Username")
-        new_password = st.text_input("Choose a Password", type="password")
-        confirm_password = st.text_input("Confirm Password", type="password")
-        register_button = st.form_submit_button("Create Account")
-
-    if register_button:
-        if not new_user or not new_password or not confirm_password:
-            st.error("Please fill in all fields.")
-        elif new_password != confirm_password:
-            st.error("Passwords do not match.")
-        else:
-            success = add_user(new_user, new_password)
-            if success:
-                st.success("Account created successfully. You can now log in.")
-                st.session_state["show_register"] = False
-                st.session_state["username"] = new_user
-                st.experimental_rerun()
-            else:
-                st.error("Username already exists. Please choose another.")
-
-    st.markdown("Already have an account?")
-    if st.button("Go to Login"):
-        st.session_state["show_register"] = False
-
-# ---------- DISEASE PREDICTION APP ----------
-def disease_prediction_app():
-    
-    # Load saved models
-    with open('diabetes_svm_model_updatee.sav', 'rb') as file:
-        diabetes_data = pickle.load(file)
-        diabetes_model = diabetes_data['model']
-        diabetes_scaler = diabetes_data['scaler']
-
-    with open('heart_disease_svm_model_updatee.sav', 'rb') as file:
-        heart_data = pickle.load(file)
-        heart_disease_model = heart_data['model']
-        heart_scaler = heart_data['scaler']
-
-    with open('parkinsons_svm_model_updatee.sav', 'rb') as file:
-        parkinsons_data = pickle.load(file)
-        parkinsons_model = parkinsons_data['model']
-        parkinsons_scaler = parkinsons_data['scaler']
-
-    with open('breast_cancer_svm_model.sav', 'rb') as file:
-        breast_cancer_data = pickle.load(file)
-        breast_cancer_model = breast_cancer_data['model']
-        breast_cancer_scaler = breast_cancer_data['scaler']
-
-    # Sidebar Navigation
+# Sidebar for navigation
 with st.sidebar:
-        selected = option_menu(
-            'Multiple Disease Prediction System',
-            ['Diabetes Prediction', 'Heart Disease Prediction', 'Parkinsons Prediction', 'Breast Cancer Prediction'],
-            menu_icon='hospital-fill',
-            icons=['activity', 'heart', 'person', 'virus'],
-            default_index=0
-        )    
-
+    selected = option_menu('Multiple Disease Prediction System',
+                           ['Diabetes Prediction',
+                            'Heart Disease Prediction',
+                            'Parkinsons Prediction',
+                            'Breast Cancer Prediction'],
+                           menu_icon='hospital-fill',
+                           icons=['activity', 'heart', 'person', 'virus'],
+                           default_index=0)
 
 if selected == 'Diabetes Prediction':
     st.title('Diabetes Prediction using ML')
@@ -501,20 +424,3 @@ if selected == 'Breast Cancer Prediction':
             st.error(cancer_diagnosis)
 
     st.success(cancer_diagnosis)
-def main():
-    init_db()
-    if "logged_in" not in st.session_state:
-        st.session_state["logged_in"] = False
-        st.session_state["username"] = ""
-    if "show_register" not in st.session_state:
-        st.session_state["show_register"] = False
-
-    if st.session_state["logged_in"]:
-        disease_prediction_app()
-    elif st.session_state["show_register"]:
-        register()
-    else:
-        login()
-
-if __name__ == "__main__":
-    main()
