@@ -2,6 +2,95 @@ import os
 import pickle
 import streamlit as st
 from streamlit_option_menu import option_menu
+#import streamlit as st
+import sqlite3
+import bcrypt
+#import os
+#import pickle
+#from streamlit_option_menu import option_menu
+
+# ---------- DATABASE SETUP ----------
+def init_db():
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users (
+                    username TEXT PRIMARY KEY,
+                    password BLOB
+                )''')
+    conn.commit()
+    conn.close()
+
+# ---------- AUTH FUNCTIONS ----------
+def add_user(username, password):
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    try:
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+
+def verify_user(username, password):
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+    c.execute("SELECT password FROM users WHERE username = ?", (username,))
+    result = c.fetchone()
+    conn.close()
+    if result:
+        return bcrypt.checkpw(password.encode(), result[0])
+    return False
+
+# ---------- LOGIN AND REGISTRATION ----------
+def login():
+    st.title("🔐 Login")
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        login_button = st.form_submit_button("Login")
+
+    if login_button:
+        if verify_user(username, password):
+            st.session_state["logged_in"] = True
+            st.session_state["username"] = username
+            st.success(f"Welcome {username}!")
+            st.experimental_rerun()
+        else:
+            st.error("Invalid username or password")
+
+    st.markdown("Don't have an account?")
+    if st.button("Go to Register"):
+        st.session_state["show_register"] = True
+
+def register():
+    st.title("📝 Register")
+    with st.form("register_form"):
+        new_user = st.text_input("Choose a Username")
+        new_password = st.text_input("Choose a Password", type="password")
+        confirm_password = st.text_input("Confirm Password", type="password")
+        register_button = st.form_submit_button("Create Account")
+
+    if register_button:
+        if not new_user or not new_password or not confirm_password:
+            st.error("Please fill in all fields.")
+        elif new_password != confirm_password:
+            st.error("Passwords do not match.")
+        else:
+            success = add_user(new_user, new_password)
+            if success:
+                st.success("Account created successfully. You can now log in.")
+                st.session_state["show_register"] = False
+                st.session_state["username"] = new_user
+                st.experimental_rerun()
+            else:
+                st.error("Username already exists. Please choose another.")
+
+    st.markdown("Already have an account?")
+    if st.button("Go to Login"):
+        st.session_state["show_register"] = False
 
 # Set page configuration
 st.set_page_config(page_title="Health Assistant",
@@ -424,3 +513,20 @@ if selected == 'Breast Cancer Prediction':
             st.error(cancer_diagnosis)
 
     st.success(cancer_diagnosis)
+def main():
+    init_db()
+    if "logged_in" not in st.session_state:
+        st.session_state["logged_in"] = False
+        st.session_state["username"] = ""
+    if "show_register" not in st.session_state:
+        st.session_state["show_register"] = False
+
+    if st.session_state["logged_in"]:
+        disease_prediction_app()
+    elif st.session_state["show_register"]:
+        register()
+    else:
+        login()
+
+if __name__ == "__main__":
+    main()
