@@ -5,6 +5,9 @@ from streamlit_option_menu import option_menu
 import sqlite3
 import bcrypt
 
+st.set_page_config(page_title="Health Assistant", layout="wide", page_icon="🧑‍⚕️")
+
+
 # ---------- DATABASE SETUP ----------
 def init_db():
     conn = sqlite3.connect("users.db")
@@ -90,9 +93,7 @@ def register():
 
 # ---------- DISEASE PREDICTION APP ----------
 def disease_prediction_app():
-    # Set page configuration
-    st.set_page_config(page_title="Health Assistant", layout="wide", page_icon="🧑‍⚕️")
-
+    
     # Load saved models
     with open('diabetes_svm_model_updatee.sav', 'rb') as file:
         diabetes_data = pickle.load(file)
