@@ -2,12 +2,8 @@ import os
 import pickle
 import streamlit as st
 from streamlit_option_menu import option_menu
-#import streamlit as st
 import sqlite3
 import bcrypt
-#import os
-#import pickle
-#from streamlit_option_menu import option_menu
 
 # ---------- DATABASE SETUP ----------
 def init_db():
@@ -92,51 +88,42 @@ def register():
     if st.button("Go to Login"):
         st.session_state["show_register"] = False
 
-# Set page configuration
-st.set_page_config(page_title="Health Assistant",
-                   layout="wide",
-                   page_icon="🧑‍⚕️")
+# ---------- DISEASE PREDICTION APP ----------
+def disease_prediction_app():
+    # Set page configuration
+    st.set_page_config(page_title="Health Assistant", layout="wide", page_icon="🧑‍⚕️")
 
-# Getting the working directory of the main.py
-working_dir = os.path.dirname(os.path.abspath(__file__))
+    # Load saved models
+    with open('diabetes_svm_model_updatee.sav', 'rb') as file:
+        diabetes_data = pickle.load(file)
+        diabetes_model = diabetes_data['model']
+        diabetes_scaler = diabetes_data['scaler']
 
-# Loading the saved models
-#diabetes_model = pickle.load(open('C:/Users/modub/Desktop/multiple disese/savedmodel/diabetes_svm_model_updatee.sav', 'rb'))
-#heart_disease_model = pickle.load(open('C:/Users/modub/Desktop/multiple disese/savedmodel/heart_disease_svm_model_updatee.sav', 'rb'))
-#parkinsons_model = pickle.load(open('C:/Users/modub/Desktop/multiple disese/savedmodel/parkinsons_svm_model_updatee.sav', 'rb'))
+    with open('heart_disease_svm_model_updatee.sav', 'rb') as file:
+        heart_data = pickle.load(file)
+        heart_disease_model = heart_data['model']
+        heart_scaler = heart_data['scaler']
 
-# Loading the saved models
-with open('diabetes_svm_model_updatee.sav', 'rb') as file:
-    diabetes_data = pickle.load(file)
-    diabetes_model = diabetes_data['model']  # Extract the model from the dictionary
-    diabetes_scaler = diabetes_data['scaler']  # Extract the scaler if needed
+    with open('parkinsons_svm_model_updatee.sav', 'rb') as file:
+        parkinsons_data = pickle.load(file)
+        parkinsons_model = parkinsons_data['model']
+        parkinsons_scaler = parkinsons_data['scaler']
 
-with open('heart_disease_svm_model_updatee.sav', 'rb') as file:
-    heart_data = pickle.load(file)
-    heart_disease_model = heart_data['model']  # Extract the model from the dictionary
-    heart_scaler = heart_data['scaler']  # Extract the scaler if needed
+    with open('breast_cancer_svm_model.sav', 'rb') as file:
+        breast_cancer_data = pickle.load(file)
+        breast_cancer_model = breast_cancer_data['model']
+        breast_cancer_scaler = breast_cancer_data['scaler']
 
-with open('parkinsons_svm_model_updatee.sav', 'rb') as file:
-    parkinsons_data = pickle.load(file)
-    parkinsons_model = parkinsons_data['model']  # Extract the model from the dictionary
-    parkinsons_scaler = parkinsons_data['scaler']  # Extract the scaler if needed
-
-with open('breast_cancer_svm_model.sav', 'rb') as file:
-    breast_cancer_data = pickle.load(file)
-    breast_cancer_model = breast_cancer_data['model']
-    breast_cancer_scaler = breast_cancer_data['scaler']
-
-
-# Sidebar for navigation
+    # Sidebar Navigation
 with st.sidebar:
-    selected = option_menu('Multiple Disease Prediction System',
-                           ['Diabetes Prediction',
-                            'Heart Disease Prediction',
-                            'Parkinsons Prediction',
-                            'Breast Cancer Prediction'],
-                           menu_icon='hospital-fill',
-                           icons=['activity', 'heart', 'person', 'virus'],
-                           default_index=0)
+        selected = option_menu(
+            'Multiple Disease Prediction System',
+            ['Diabetes Prediction', 'Heart Disease Prediction', 'Parkinsons Prediction', 'Breast Cancer Prediction'],
+            menu_icon='hospital-fill',
+            icons=['activity', 'heart', 'person', 'virus'],
+            default_index=0
+        )    
+
 
 if selected == 'Diabetes Prediction':
     st.title('Diabetes Prediction using ML')
